@@ -1,0 +1,56 @@
+trigger: none
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - infra/*
+      - infracost.yml
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  TF_IN_AUTOMATION: "true"
+
+steps:
+  - checkout: self
+
+  - task: TerraformInstaller@1
+    displayName: Install Terraform
+    inputs:
+      terraformVersion: latest
+
+  - script: |
+      curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+      infracost --version
+    displayName: Install Infracost
+
+  # -------- BASELINE --------
+  - script: |
+      git fetch origin main
+      git checkout origin/main
+      infracost breakdown \
+        --config-file=infracost.yml \
+        --format=json \
+        --out-file=$(Pipeline.Workspace)/infracost-base.json
+    displayName: Generate baseline cost
+
+  # -------- PR BRANCH --------
+  - script: |
+      git checkout $(Build.SourceVersion)
+      infracost breakdown \
+        --config-file=infracost.yml \
+        --format=json \
+        --out-file=$(Pipeline.Workspace)/infracost-pr.json
+    displayName: Generate PR cost
+
+  # -------- OUTPUT --------
+  - script: |
+      infracost diff \
+        --path=$(Pipeline.Workspace)/infracost-pr.json \
+        --compare-to=$(Pipeline.Workspace)/infracost-base.json \
+        --format=table
+    displayName: Show cost diff
