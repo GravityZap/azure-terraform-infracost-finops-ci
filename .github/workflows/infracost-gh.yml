@@ -1,0 +1,66 @@
+name: Infracost (GitHub Actions)
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - "infracost.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  TF_IN_AUTOMATION: true
+
+jobs:
+  infracost:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      # -------- BASELINE (main branch) --------
+      - name: Checkout main branch
+        run: |
+          git fetch origin main
+          git checkout origin/main
+
+      - name: Generate baseline cost
+        run: |
+          infracost breakdown \
+            --config-file=infracost.yml \
+            --format=json \
+            --out-file=/tmp/infracost-base.json
+
+      # -------- PR BRANCH --------
+      - name: Checkout PR branch
+        run: |
+          git checkout ${{ github.event.pull_request.head.sha }}
+
+      - name: Generate PR cost
+        run: |
+          infracost breakdown \
+            --config-file=infracost.yml \
+            --format=json \
+            --out-file=/tmp/infracost-pr.json
+
+      # -------- COMMENT --------
+      - name: Post Infracost comment
+        run: |
+          infracost comment github \
+            --path=/tmp/infracost-pr.json \
+            --compare-to=/tmp/infracost-base.json \
+            --repo=$GITHUB_REPOSITORY \
+            --pull-request=${{ github.event.pull_request.number }} \
+            --github-token=${{ secrets.GITHUB_TOKEN }} \
+            --behavior=update
