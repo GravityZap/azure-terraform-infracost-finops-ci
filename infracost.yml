@@ -1,0 +1,13 @@
+version: 0.1
+
+currency: USD
+
+projects:
+  - name: cheap-scenario
+    path: infra/scenarios/cheap
+
+  - name: expensive-scenario
+    path: infra/scenarios/expensive
+
+  - name: autoscaling-scenario
+    path: infra/scenarios/autoscaling
