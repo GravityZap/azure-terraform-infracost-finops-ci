@@ -72,21 +72,7 @@ Each scenario uses the same core modules but different SKUs, scaling rules and o
 
 ## 🏗 Repository structure
 
-├── README.md
-├── infracost.yml
-├── infra/
-│ ├── modules/
-│ │ └── web_app/
-│ └── scenarios/
-│    ├── cheap/
-│    ├── expensive/
-│    └── autoscaling/
-│
-├── .github/workflows/
-│ └── infracost-gh.yml
-│
-└── ado-pipelines/
-└── infracost-ado.yml
+![Structure screenshot](imaages/folders_structure.png)
 
 
 ---
