@@ -72,7 +72,7 @@ Each scenario uses the same core modules but different SKUs, scaling rules and o
 
 ## 🏗 Repository structure
 
-![Structure screenshot](imaages/folders_structure.png)
+![Structure screenshot](images/folders_structure.png)
 
 
 ---
